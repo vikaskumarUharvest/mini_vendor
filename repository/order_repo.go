@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,13 +27,18 @@ func NewOrderRepository(db *pgxpool.Pool) OrderRepository {
 }
 
 func (r *orderRepo) Create(ctx context.Context, o *domain.Order) error {
+
 	tx, err := r.db.Begin(ctx)
+	// 1. `tx, err := r.db.Begin(ctx)` -> This tells the database, *"Hey, start a new transaction. Don't permanently save anything until I say so!"*
+
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
+	// 2. `defer tx.Rollback(ctx)` -> This is a safety net. It says, *"If this function crashes or returns an error before committing, undo everything we just did."*
 
 	o.ID = uuid.New()
+	// 3. `tx.QueryRow(...)` -> This successfully inserts the `order`. (At this point, the order is in a temporary state in the database).
 
 	err = tx.QueryRow(ctx,
 		`INSERT INTO orders (id, amount, status, created_at)
@@ -45,16 +51,25 @@ func (r *orderRepo) Create(ctx context.Context, o *domain.Order) error {
 	}
 
 	// Insert items
-	for _, item := range o.Items {
+	for i := range o.Items {
+		o.Items[i].ID = uuid.New()
+		o.Items[i].OrderID = o.ID
+		// --- ADD THESE 3 LINES TO TEST THE ROLLBACK ---
+		if o.Items[i].Name == "FAIL" {
+			return fmt.Errorf("simulated database crash for testing")
+		}
+
+		// 4. `tx.Exec(...)` -> This tries to insert the `items`. If an item fails (like our `qty: 3000000000` trick), your code hits `return err`.
 		_, err := tx.Exec(ctx,
 			`INSERT INTO order_items (id, order_id, name, qty)
 			 VALUES ($1,$2,$3,$4)`,
-			uuid.New(), o.ID, item.Name, item.Qty,
+			o.Items[i].ID, o.Items[i].OrderID, o.Items[i].Name, o.Items[i].Qty,
 		)
 		if err != nil {
 			return err // rollback triggered
 		}
 	}
+	// 5. Because the function returned early, it never reaches `tx.Commit(ctx)`, and the `defer tx.Rollback(ctx)` triggers! The database completely erases the temporary `order` it just inserted.
 
 	return tx.Commit(ctx)
 }

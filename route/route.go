@@ -33,14 +33,14 @@ func SetupRoutes(
 			users.PUT("/:id", h.Update)
 			users.DELETE("/:id", h.Delete)
 		}
-	}
 
-	orders := r.Group("/orders")
-	{
-		orders.POST("", orderHandler.Create)
-		orders.GET("", orderHandler.List)
-		orders.GET("/:id", orderHandler.Get)
-		orders.PUT("/:id", orderHandler.Update)
-		orders.DELETE("/:id", orderHandler.Delete)
+		orders := api.Group("/orders")
+		{
+			orders.POST("", orderHandler.Create)
+			orders.GET("", orderHandler.List)
+			orders.GET("/:id", orderHandler.Get)
+			orders.PUT("/:id", orderHandler.Update)
+			orders.DELETE("/:id", orderHandler.Delete)
+		}
 	}
 }
