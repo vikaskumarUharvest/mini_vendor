@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"pgxpostgress/seed"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -17,6 +18,14 @@ func main() {
 		dbURL = "postgres://postgres:573636@localhost:5432/go_postgres"
 	}
 
+	/* the context package is used to control timeouts, cancellation, and request-scoped values.
+
+	   context.Background() is the most basic, empty context:
+
+	   never cancels
+	   has no timeout
+	   carries no values
+	*/
 	pool, err := pgxpool.New(context.Background(), dbURL)
 	if err != nil {
 		log.Fatalf("❌ DB connect error: %v", err)
