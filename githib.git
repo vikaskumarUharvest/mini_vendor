@@ -1,0 +1,26 @@
+🔁 Step-by-step Git commands
+
+1. Go to your user branch
+git checkout user
+
+2. Save your work (IMPORTANT)
+git add .
+git commit -m "your changes"
+
+3. Get latest main into your branch
+git pull origin main
+
+👉 Resolve conflicts if any, then:
+
+git add .
+git commit -m "resolved conflicts"
+
+4. Push your updated user branch
+git push origin user
+
+5. Merge into main
+👉 Option A (best way – Pull Request)
+
+Go to GitHub
+Create PR: user → main
+Review → Merge
