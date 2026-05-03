@@ -13,7 +13,7 @@ import (
 
 func main() {
 	fmt.Println("---------pgx Poool Postgeess--------")
-	dbURL := "postgres://postgres:573636@localhost:5432/librarydb"
+	dbURL := "postgres://postgres:573636@localhost:5432/go_postgres"
 
 	pool, err := pgxpool.New(
 		context.Background(),
