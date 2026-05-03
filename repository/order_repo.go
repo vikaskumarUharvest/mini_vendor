@@ -49,24 +49,37 @@ func (r *orderRepo) Create(ctx context.Context, o *domain.Order) error {
 	if err != nil {
 		return err
 	}
-
 	// Insert items
 	for i := range o.Items {
-		o.Items[i].ID = uuid.New()
+		// 1. MODIFIED: Only generate a new UUID if Postman didn't provide one.
+		// This allows the "Duplicate ID" test to actually reach the database.
+		if o.Items[i].ID == uuid.Nil {
+			o.Items[i].ID = uuid.New()
+		}
+
 		o.Items[i].OrderID = o.ID
-		// --- ADD THESE 3 LINES TO TEST THE ROLLBACK ---
+
+		// 2. Validation: Catch empty names before hitting the DB
+		if o.Items[i].Name == "" {
+			return fmt.Errorf("item name cannot be empty")
+		}
+
+		// 3. Test Trigger: Manual fail for testing rollback
 		if o.Items[i].Name == "FAIL" {
 			return fmt.Errorf("simulated database crash for testing")
 		}
 
-		// 4. `tx.Exec(...)` -> This tries to insert the `items`. If an item fails (like our `qty: 3000000000` trick), your code hits `return err`.
+		// 4. DB Execution
 		_, err := tx.Exec(ctx,
 			`INSERT INTO order_items (id, order_id, name, qty)
-			 VALUES ($1,$2,$3,$4)`,
+         VALUES ($1,$2,$3,$4)`,
 			o.Items[i].ID, o.Items[i].OrderID, o.Items[i].Name, o.Items[i].Qty,
 		)
+
 		if err != nil {
-			return err // rollback triggered
+			// If SQL throws a "Duplicate Key" or "Constraint" error,
+			// we return here, and 'defer tx.Rollback(ctx)' cleans up the Order.
+			return fmt.Errorf("database error: %w", err)
 		}
 	}
 	// 5. Because the function returned early, it never reaches `tx.Commit(ctx)`, and the `defer tx.Rollback(ctx)` triggers! The database completely erases the temporary `order` it just inserted.

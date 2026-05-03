@@ -20,3 +20,35 @@ type OrderItem struct {
 	Name    string    `json:"name"`
 	Qty     int       `json:"qty"`
 }
+
+/*
+
+1. Create an Order
+
+
+{
+  "amount": 150.50,
+  "items": [
+    {
+      "name": "Organic Apples",
+      "qty": 5
+    },
+    {
+      "name": "Fresh Milk",
+      "qty": 2
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+*/
