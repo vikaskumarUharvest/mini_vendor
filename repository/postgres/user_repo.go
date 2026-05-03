@@ -27,7 +27,7 @@ func (r *userRepository) List(
 ) ([]domain.User, int, error) {
 
 	query := `
-		SELECT id, email, name, city
+		SELECT id, email, name, city, COALESCE(country, '')
 		FROM users
 	`
   // pool.Query for multiple Query
@@ -50,6 +50,7 @@ func (r *userRepository) List(
 			&user.Email,
 			&user.Name,
 			&user.City,
+			&user.Country,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -74,8 +75,8 @@ func (r *userRepository) Create(
 
 	query := `
 		INSERT INTO users
-		(id,name,email,password,phone,age,city)
-		VALUES ($1,$2,$3,$4,$5,$6,$7)
+		(id,name,email,password,phone,age,city,country)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
 	`
 // Exec: For commands that don't return rows.
 	_, err := r.pool.Exec(
@@ -88,6 +89,7 @@ func (r *userRepository) Create(
 		user.Phone,
 		user.Age,
 		user.City,
+		user.Country,
 	)
 
 	return err
@@ -99,7 +101,7 @@ func (r *userRepository) Get(
 ) (*domain.User, error) {
 
 	query := `
-		SELECT id,email,name,city
+		SELECT id,email,name,city, COALESCE(country, '')
 		FROM users
 		WHERE id=$1
 	`
@@ -115,6 +117,7 @@ func (r *userRepository) Get(
 		&user.Email,
 		&user.Name,
 		&user.City,
+		&user.Country,
 	)
 
 	if err != nil {
@@ -131,7 +134,7 @@ func (r *userRepository) Update(
 
 	query := `
 		UPDATE users
-		SET name=$2, email=$3, phone=$4, age=$5, city=$6
+		SET name=$2, email=$3, phone=$4, age=$5, city=$6, country=$7
 		WHERE id=$1
 	`
 
@@ -144,6 +147,7 @@ func (r *userRepository) Update(
 		user.Phone,
 		user.Age,
 		user.City,
+		user.Country,
 	)
 
 	return err

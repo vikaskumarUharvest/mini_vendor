@@ -45,7 +45,10 @@ func (h *OrderHandler) Get(c *gin.Context) {
 
 func (h *OrderHandler) List(c *gin.Context) {
 	orders, _ := h.svc.List(c)
-	c.JSON(200, orders)
+	c.JSON(200, domain.PaginatedResponse{
+		Items: orders,
+		Total: len(orders),
+	})
 }
 
 func (h *OrderHandler) Update(c *gin.Context) {
