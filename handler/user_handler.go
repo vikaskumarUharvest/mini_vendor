@@ -26,16 +26,14 @@ func (h *UserHandler) List(c *gin.Context) {
 	// For standard listing, we will simply pass through standard parameters.
 	users, total, err := h.userService.List(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list users"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list users: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, struct {
-		Items []domain.User `json:"items"`
-		Total int           `json:"total"`
-	}{
+	c.JSON(200, domain.PaginatedResponse{
 		Items: users, Total: total,
 	})
+
 }
 
 func (h *UserHandler) Create(c *gin.Context) {
@@ -46,6 +44,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		Phone    string `json:"phone"`
 		Age      int    `json:"age"`
 		City     string `json:"city"`
+		Country  string `json:"country"`
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -66,6 +65,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		Phone:    body.Phone,
 		Age:      body.Age,
 		City:     body.City,
+		Country:  body.Country,
 	}
 
 	err := h.userService.Create(c.Request.Context(), user)
@@ -105,11 +105,12 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	var body struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
-		Phone string `json:"phone"`
-		Age   int    `json:"age"`
-		City  string `json:"city"`
+		Name    string `json:"name"`
+		Email   string `json:"email"`
+		Phone   string `json:"phone"`
+		Age     int    `json:"age"`
+		City    string `json:"city"`
+		Country string `json:"country"`
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -124,6 +125,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		Phone: body.Phone,
 		Age:   body.Age,
 		City:  body.City,
+		Country: body.Country,
 	}
 
 	err = h.userService.Update(c.Request.Context(), user)
